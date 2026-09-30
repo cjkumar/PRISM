@@ -3,3 +3,11 @@ __pycache__/
 *.pyc
 ~$*
 .claude/
+INTERVIEW_PREP.md
+.env
+INTERVIEW_PREP.docx
+
+# Unpublished manuscript material - do not commit to a public repo
+CVD_Paper.pdf
+NCCP_Paper/
+*.docx
