@@ -33,10 +33,27 @@ from pathlib import Path
 logger = logging.getLogger("prism.cli")
 
 
+def _make_pipeline(config, args):
+    """Build either the sequential or the LangGraph pipeline.
+
+    Both expose the same process_document / process_batch surface and return
+    the same result dict, so --graph is a drop-in A/B switch.
+    """
+    if getattr(args, "graph", False):
+        from PRISM.pipeline_graph import PRISMGraphPipeline
+
+        return PRISMGraphPipeline(
+            config, max_concurrency=getattr(args, "max_concurrency", None)
+        )
+
+    from PRISM.pipeline import PRISMPipeline
+
+    return PRISMPipeline(config)
+
+
 def cmd_analyze(args):
     """Run the full PRISM pipeline on a single document."""
     from PRISM.config import PRISMConfig
-    from PRISM.pipeline import PRISMPipeline
 
     config_kwargs = {"domain": args.domain}
     if args.config:
@@ -47,13 +64,22 @@ def cmd_analyze(args):
     if args.output_dir:
         config.output_dir = args.output_dir
 
-    pipeline = PRISMPipeline(config)
+    pipeline = _make_pipeline(config, args)
+
+    kwargs = {}
+    if getattr(args, "run_id", None):
+        if not getattr(args, "graph", False):
+            print("--run-id requires --graph (resume is a graph feature)")
+            sys.exit(1)
+        kwargs["run_id"] = args.run_id
+
     result = pipeline.process_document(
         pdf_path=args.pdf,
         country=args.country,
         year=args.year,
         output_path=args.output,
         lightweight_ingestion=args.lightweight,
+        **kwargs,
     )
 
     print(f"\nAnalysis complete: {result['country']} ({result['year']})")
@@ -68,7 +94,6 @@ def cmd_analyze(args):
 def cmd_batch(args):
     """Batch process multiple PDF documents."""
     from PRISM.config import PRISMConfig
-    from PRISM.pipeline import PRISMPipeline
     from PRISM.visualization.export import DataExporter
 
     config = PRISMConfig(domain=args.domain)
@@ -93,7 +118,7 @@ def cmd_batch(args):
         })
 
     print(f"Found {len(documents)} PDF files")
-    pipeline = PRISMPipeline(config)
+    pipeline = _make_pipeline(config, args)
     results = pipeline.process_batch(
         documents, lightweight_ingestion=args.lightweight
     )
@@ -182,6 +207,14 @@ def main():
     p_analyze.add_argument("--config", help="Path to config JSON")
     p_analyze.add_argument("--lightweight", action="store_true",
                            help="Use lightweight ingestion (no VL model)")
+    p_analyze.add_argument("--graph", action="store_true",
+                           help="Use the LangGraph pipeline (parallel "
+                                "sub-element analysis, resumable checkpoints)")
+    p_analyze.add_argument("--max-concurrency", type=int, default=None,
+                           help="Parallel sub-element analyses with --graph "
+                                "(default 4; tune to your inference endpoint)")
+    p_analyze.add_argument("--run-id", default=None,
+                           help="Resume a prior --graph run by its run id")
 
     # ── batch ──
     p_batch = subparsers.add_parser("batch", help="Batch process PDF folder")
@@ -190,6 +223,10 @@ def main():
                          choices=["cancer", "cvd"])
     p_batch.add_argument("--output-dir", help="Output directory")
     p_batch.add_argument("--lightweight", action="store_true")
+    p_batch.add_argument("--graph", action="store_true",
+                         help="Use the LangGraph pipeline")
+    p_batch.add_argument("--max-concurrency", type=int, default=None,
+                         help="Parallel sub-element analyses with --graph")
 
     # ── validate ──
     p_validate = subparsers.add_parser("validate", help="Validate analysis JSONs")

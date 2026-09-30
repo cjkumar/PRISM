@@ -20,6 +20,10 @@ requests>=2.31.0                   # HTTP requests fallback
 # Data processing
 pandas>=2.0.0                      # DataFrame operations (visualization/export)
 
+# Graph orchestration (pipeline_graph.py - optional alternative to pipeline.py)
+langgraph>=1.0.0                   # StateGraph orchestration, Send fan-out
+langgraph-checkpoint-sqlite>=3.0.0 # Durable cross-stage checkpointing
+
 # === Optional dependencies ===
 
 # Full Agent 1 (Qwen2.5-VL-72B) - requires GPU

@@ -12,6 +12,7 @@ Agents:
 Modules:
     - page_references: Three-method triangulation for source attribution
     - pipeline: DAG orchestrator connecting all agents
+    - pipeline_graph: LangGraph orchestrator (parallel fan-out, resumable)
     - frameworks: Domain-specific analytical framework definitions
     - visualization: Data export and visualization utilities
 
@@ -25,3 +26,10 @@ __author__ = "Health Systems Innovation Lab, Harvard T.H. Chan School of Public 
 
 from PRISM.pipeline import PRISMPipeline
 from PRISM.config import PRISMConfig
+
+# Optional: requires langgraph. Kept lazy so the core package imports
+# without it installed.
+try:
+    from PRISM.pipeline_graph import PRISMGraphPipeline
+except ImportError:  # pragma: no cover
+    PRISMGraphPipeline = None
