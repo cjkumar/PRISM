@@ -1,8 +1,12 @@
 # PRISM
 
 **P**olicy **R**easoning **I**ntegrated **S**equential **M**odel — a multi-agent LLM system
-that scores national disease control plans against structured, expert-validated policy
-frameworks, and cites the pages of the source document backing every score.
+that scores national disease control plans against Delphi-validated policy frameworks, and
+cites the pages of the source document backing every score.
+
+The two frameworks were developed and validated independently of the software, through Delphi
+consensus with **67 international cancer experts** and **42 cardiovascular specialists across
+28 countries**. PRISM operationalises those instruments; it does not define them.
 
 Health Systems Innovation Lab, Department of Global Health and Population,
 Harvard T.H. Chan School of Public Health.
@@ -157,7 +161,8 @@ pip install transformers accelerate opencv-python pdf2image
 
 ```bash
 cd /path/to/parent-of-PRISM
-python -m PRISM.cli analyze --help     # works
+python -m PRISM analyze --help          # works (__main__.py wires cli:main)
+python -m PRISM.cli analyze --help      # equivalent
 ```
 
 Running `python -m PRISM.cli` from inside the repo raises `ModuleNotFoundError: No module
@@ -241,10 +246,10 @@ One JSON array per document, one object per framework sub-element:
 
 ## Frameworks
 
-| Domain | Sections | Sub-elements |
-|---|---|---|
-| Cancer (NCCP) | 12 | 76 |
-| Cardiovascular disease (CVD) | 11 | 69 |
+| Domain | Sections | Sub-elements | Provenance | Expert validation |
+|---|---|---|---|---|
+| Cancer (NCCP) | 12 | 76 | Based on Atun et al. (2008) | Delphi, 67 international experts |
+| Cardiovascular disease (CVD) | 11 | 69 | Adapted from the NCCP framework | Delphi, 42 specialists / 28 countries |
 
 Both frameworks follow a health-systems structure. Cancer sections, with sub-element counts:
 Outcomes (4), Objectives (4), Outputs (4), Functions (3), Threats (8), Opportunities (8),
